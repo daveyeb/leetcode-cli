@@ -11,7 +11,7 @@ use crate::{config::Config, err::Error, plugins::LeetCode};
 use anyhow::anyhow;
 use colored::Colorize;
 use diesel::prelude::*;
-use reqwest::Response;
+use wreq::Response;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -150,9 +150,9 @@ impl Cache {
         let target: Problem = problems.filter(fid.eq(rfid)).first(&mut self.conn()?)?;
 
         let ids = match target.level {
-            1 => target.fid.to_string().green(),
-            2 => target.fid.to_string().yellow(),
-            3 => target.fid.to_string().red(),
+            1 => target.fid.to_string().truecolor(0, 184, 163),
+            2 => target.fid.to_string().truecolor(255, 192, 30),
+            3 => target.fid.to_string().truecolor(255, 55, 95),
             _ => target.fid.to_string().dimmed(),
         };
 

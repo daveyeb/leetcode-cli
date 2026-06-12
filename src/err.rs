@@ -18,11 +18,11 @@ pub enum Error {
     #[error("Download {0} failed, please try again")]
     DownloadError(String),
     #[error(transparent)]
-    Reqwest(#[from] reqwest::Error),
+    Reqwest(#[from] wreq::Error),
     #[error(transparent)]
-    HeaderName(#[from] reqwest::header::InvalidHeaderName),
+    HeaderName(#[from] wreq::header::InvalidHeaderName),
     #[error(transparent)]
-    HeaderValue(#[from] reqwest::header::InvalidHeaderValue),
+    HeaderValue(#[from] wreq::header::InvalidHeaderValue),
     #[error(
         "Your leetcode cookies seems expired, \
          {} \
@@ -66,9 +66,7 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Anyhow(#[from] anyhow::Error),
-    #[error(transparent)]
-    OpenSSL(#[from] openssl::error::ErrorStack),
-    #[cfg(feature = "pym")]
+#[cfg(feature = "pym")]
     #[error(transparent)]
     Pyo3(#[from] pyo3::PyErr),
 }

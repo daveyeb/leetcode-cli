@@ -171,11 +171,79 @@ impl EditArgs {
             }
         }
 
+        let minutes = match problem.level {
+            1 => 15u64,
+            2 => 25u64,
+            3 => 40u64,
+            _ => 25u64,
+        };
+
+        let in_tmux = std::env::var("TMUX").is_ok();
+        let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let stop_clone = std::sync::Arc::clone(&stop);
+        let pname = problem.name.clone();
+
+        let timer = std::thread::spawn(move || {
+            use std::sync::atomic::Ordering;
+            let total = minutes * 60;
+            let mut elapsed = 0u64;
+            while elapsed <= total && !stop_clone.load(Ordering::Relaxed) {
+                let remaining = total - elapsed;
+                let label = format!("⏱ {:02}:{:02} {}", remaining / 60, remaining % 60, pname);
+                if in_tmux {
+                    std::process::Command::new("tmux")
+                        .args(["rename-window", &label])
+                        .status()
+                        .ok();
+                } else {
+                    use std::io::Write;
+                    print!("\x1b]0;{}\x07", label);
+                    std::io::stdout().flush().ok();
+                }
+                std::thread::sleep(std::time::Duration::from_secs(1));
+                elapsed += 1;
+            }
+            if in_tmux {
+                std::process::Command::new("tmux")
+                    .args(["set-window-option", "automatic-rename", "on"])
+                    .status()
+                    .ok();
+            } else {
+                use std::io::Write;
+                print!("\x1b]0;\x07");
+                std::io::stdout().flush().ok();
+            }
+        });
+
+        let started = std::time::Instant::now();
         args.push(path);
         std::process::Command::new(conf.code.editor)
             .envs(envs)
             .args(args)
             .status()?;
+
+        stop.store(true, std::sync::atomic::Ordering::Relaxed);
+        timer.join().ok();
+
+        let took = started.elapsed().as_secs();
+        let limit = minutes * 60;
+        use colored::Colorize;
+        if took <= limit {
+            println!(
+                "\n  {} — {:02}:{:02} of {:02}:00\n",
+                "Done".truecolor(0, 184, 163).bold(),
+                took / 60, took % 60, minutes,
+            );
+        } else {
+            let over = took - limit;
+            println!(
+                "\n  {} — {:02}:{:02} / {:02}:00  (+{:02}:{:02} over)\n",
+                "Overtime".truecolor(255, 55, 95).bold(),
+                took / 60, took % 60, minutes,
+                over / 60, over % 60,
+            );
+        }
+
         Ok(())
     }
 }

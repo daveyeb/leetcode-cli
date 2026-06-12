@@ -124,10 +124,17 @@ impl std::fmt::Display for Problem {
         }
 
         level = match self.level {
-            1 => "Easy  ".bright_green(),
-            2 => "Medium".bright_yellow(),
-            3 => "Hard  ".bright_red(),
+            1 => "Easy  ".truecolor(0, 184, 163),
+            2 => "Medium".truecolor(255, 192, 30),
+            3 => "Hard  ".truecolor(255, 55, 95),
             _ => level,
+        };
+
+        let id_colored = match self.level {
+            1 => id.truecolor(0, 184, 163),
+            2 => id.truecolor(255, 192, 30),
+            3 => id.truecolor(255, 55, 95),
+            _ => id.normal(),
         };
 
         let mut pct = self.percent.to_string();
@@ -139,7 +146,7 @@ impl std::fmt::Display for Problem {
             "  {} {} [{}] {} {} ({} %)",
             lock,
             done,
-            id,
+            id_colored,
             name,
             level,
             &pct[..5]

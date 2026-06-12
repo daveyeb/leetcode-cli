@@ -3,10 +3,11 @@ use crate::{
     Result,
     config::{self, Config},
 };
-use reqwest::{
-    Client, ClientBuilder, Response,
+use wreq::{
+    Client, Response,
     header::{HeaderMap, HeaderName, HeaderValue},
 };
+use wreq_util::Emulation;
 use std::{collections::HashMap, str::FromStr, time::Duration};
 
 /// LeetCode API set
@@ -48,7 +49,8 @@ impl LeetCode {
             ],
         )?;
 
-        let client = ClientBuilder::new()
+        let client = Client::builder()
+            .emulation(Emulation::Chrome147)
             .gzip(true)
             .connect_timeout(Duration::from_secs(30))
             .build()?;
@@ -277,7 +279,7 @@ impl LeetCode {
 mod req {
     use super::LeetCode;
     use crate::err::Error;
-    use reqwest::{Client, Response, header::HeaderMap};
+    use wreq::{Client, Response, header::HeaderMap};
     use std::collections::HashMap;
 
     /// Standardize json format

@@ -95,6 +95,10 @@ impl PickArgs {
 
         match r {
             Ok(q) => println!("{}", q.desc()),
+            Err(Error::NotFound) => {
+                cache.download_problems().await?;
+                return Box::pin(self.run()).await;
+            }
             Err(e) => {
                 eprintln!("{:?}", e);
                 if let Error::Reqwest(_) = e {

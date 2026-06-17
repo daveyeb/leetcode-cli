@@ -66,6 +66,8 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Anyhow(#[from] anyhow::Error),
+    #[error("Problem not found in local cache, run `leetcode data -u` to refresh")]
+    NotFound,
 #[cfg(feature = "pym")]
     #[error(transparent)]
     Pyo3(#[from] pyo3::PyErr),
@@ -74,9 +76,7 @@ pub enum Error {
 impl std::convert::From<diesel::result::Error> for Error {
     fn from(err: diesel::result::Error) -> Self {
         match err {
-            diesel::result::Error::NotFound => Error::Anyhow(anyhow!(
-                "NotFound, you may update cache with `leetcode data -u`, and try it again\r\n"
-            )),
+            diesel::result::Error::NotFound => Error::NotFound,
             _ => Error::Anyhow(anyhow!("{err}")),
         }
     }
